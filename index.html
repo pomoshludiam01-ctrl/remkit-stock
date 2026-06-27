@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Склад ремкомплектов — наличие</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#15171a;
+    --panel:#1c1f24;
+    --panel-2:#222630;
+    --line:#2c313a;
+    --text:#eef0f2;
+    --text-dim:#9aa3ad;
+    --accent:#ff6a13;
+    --accent-dim:#3a2a1c;
+    --ok:#34c77b;
+    --ok-dim:#16291f;
+    --warn:#e0b23c;
+    --warn-dim:#2c2616;
+    --gone:#e0463c;
+    --gone-dim:#2c1817;
+    --radius:10px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  ::selection{background:var(--accent);color:#15171a;}
+
+  a{color:inherit;}
+
+  /* ---------- header ---------- */
+  header{
+    position:sticky;top:0;z-index:40;
+    background:rgba(21,23,26,0.92);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .header-inner{
+    max-width:1280px;margin:0 auto;
+    padding:18px 24px;
+    display:flex;align-items:center;justify-content:space-between;
+    gap:24px;flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{
+    width:38px;height:38px;border-radius:8px;
+    background:linear-gradient(160deg,var(--accent),#c44d00);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;
+    color:#15171a;flex:none;
+    box-shadow:0 0 0 1px rgba(255,255,255,.08) inset;
+  }
+  .brand-text h1{font-size:16px;margin:0;font-weight:700;letter-spacing:-0.01em;}
+  .brand-text p{margin:1px 0 0;font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;}
+
+  .stats-strip{display:flex;gap:18px;flex-wrap:wrap;}
+  .stat{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;color:var(--text-dim);
+    display:flex;align-items:baseline;gap:6px;
+  }
+  .stat b{font-size:18px;color:var(--text);font-weight:700;}
+  .stat.ok b{color:var(--ok);}
+  .stat.gone b{color:var(--gone);}
+
+  /* ---------- controls ---------- */
+  .controls{
+    max-width:1280px;margin:0 auto;
+    padding:20px 24px 0;
+    display:flex;flex-direction:column;gap:14px;
+  }
+  .search-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .search-box{
+    flex:1 1 280px;position:relative;
+  }
+  .search-box input{
+    width:100%;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:12px 14px 12px 40px;
+    color:var(--text);
+    font-size:14px;
+    font-family:'JetBrains Mono',monospace;
+    outline:none;
+    transition:border-color .15s;
+  }
+  .search-box input:focus{border-color:var(--accent);}
+  .search-box input::placeholder{color:var(--text-dim);}
+  .search-icon{
+    position:absolute;left:14px;top:50%;transform:translateY(-50%);
+    width:15px;height:15px;color:var(--text-dim);pointer-events:none;
+  }
+
+  select{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    color:var(--text);
+    padding:12px 14px;
+    font-size:13px;
+    font-family:'Inter',sans-serif;
+    outline:none;
+    cursor:pointer;
+    appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%239aa3ad' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat:no-repeat;
+    background-position:right 14px center;
+    padding-right:32px;
+  }
+  select:focus{border-color:var(--accent);}
+
+  .filter-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .chip-group{display:flex;gap:6px;flex-wrap:wrap;}
+  .chip{
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:var(--text-dim);
+    border-radius:999px;
+    padding:7px 13px;
+    font-size:12.5px;
+    font-weight:500;
+    cursor:pointer;
+    transition:all .12s;
+    user-select:none;
+  }
+  .chip:hover{border-color:#444b56;color:var(--text);}
+  .chip.active{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#15171a;
+    font-weight:700;
+  }
+
+  .reset-link{
+    margin-left:auto;
+    font-size:12.5px;
+    color:var(--text-dim);
+    cursor:pointer;
+    text-decoration:underline;
+    text-decoration-color:transparent;
+    transition:text-decoration-color .12s;
+  }
+  .reset-link:hover{text-decoration-color:var(--text-dim);}
+
+  /* ---------- table ---------- */
+  .table-wrap{
+    max-width:1280px;margin:0 auto;
+    padding:18px 24px 60px;
+  }
+  .count-line{
+    font-size:12.5px;color:var(--text-dim);
+    font-family:'JetBrains Mono',monospace;
+    margin-bottom:10px;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+
+  .grid{
+    display:grid;
+    gap:10px;
+  }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 18px;
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    gap:16px;
+    align-items:center;
+    transition:border-color .12s;
+  }
+  .card:hover{border-color:#3a4047;}
+  .card.status-sold{opacity:.45;}
+
+  .card-badge{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    font-weight:700;
+    padding:5px 9px;
+    border-radius:6px;
+    white-space:nowrap;
+    text-align:center;
+    min-width:74px;
+  }
+  .badge-Komatsu{background:#2a2310;color:#e0b23c;}
+  .badge-Hitachi{background:#142b22;color:#34c77b;}
+  .badge-Hyundai{background:#162433;color:#5aa9e6;}
+  .badge-Doosan{background:#2b1a2e;color:#c97fe0;}
+  .badge-Caterpillar{background:#2c1d14;color:#ff6a13;}
+
+  .card-main{min-width:0;}
+  .card-title-row{
+    display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+    margin-bottom:4px;
+  }
+  .card-model{font-weight:700;font-size:14.5px;letter-spacing:-0.01em;}
+  .card-kit{
+    font-size:12px;color:var(--text-dim);
+    background:var(--panel-2);
+    padding:2px 8px;border-radius:5px;
+  }
+  .card-part{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;color:var(--text-dim);
+    margin-bottom:6px;
+  }
+  .card-part b{color:var(--text);font-weight:600;}
+  .card-cross{
+    font-size:11.5px;color:#7b8794;
+    line-height:1.4;
+    max-width:640px;
+    display:none;
+  }
+  .card-cross.show{display:block;}
+  .cross-toggle{
+    font-size:11px;color:var(--accent);cursor:pointer;
+    font-weight:600;display:inline-block;margin-top:2px;
+  }
+
+  .card-right{
+    display:flex;align-items:center;gap:14px;
+  }
+  .qty-box{
+    text-align:right;
+  }
+  .qty-num{
+    font-family:'JetBrains Mono',monospace;
+    font-size:20px;font-weight:700;
+    line-height:1;
+  }
+  .qty-label{font-size:10.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.03em;}
+
+  .status-pill{
+    font-size:11px;font-weight:700;
+    padding:6px 11px;border-radius:999px;
+    white-space:nowrap;
+    cursor:pointer;
+    border:1px solid transparent;
+    transition:all .12s;
+    text-transform:uppercase;
+    letter-spacing:.02em;
+  }
+  .status-in{background:var(--ok-dim);color:var(--ok);}
+  .status-reserved{background:var(--warn-dim);color:var(--warn);}
+  .status-sold{background:var(--gone-dim);color:var(--gone);}
+
+  .copy-btn{
+    background:none;border:1px solid var(--line);
+    color:var(--text-dim);
+    border-radius:7px;
+    width:32px;height:32px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    flex:none;
+    transition:all .12s;
+  }
+  .copy-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .copy-btn svg{width:14px;height:14px;}
+
+  .empty-state{
+    text-align:center;padding:80px 20px;color:var(--text-dim);
+  }
+  .empty-state .big{font-size:32px;margin-bottom:10px;}
+
+  footer{
+    border-top:1px solid var(--line);
+    padding:20px 24px 30px;
+    text-align:center;
+    color:var(--text-dim);
+    font-size:11.5px;
+    font-family:'JetBrains Mono',monospace;
+  }
+
+  @media (max-width:720px){
+    .card{grid-template-columns:1fr;gap:10px;}
+    .card-badge{justify-self:start;}
+    .card-right{justify-content:space-between;width:100%;}
+    .stats-strip{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-mark">RК</div>
+      <div class="brand-text">
+        <h1>Склад ремкомплектов</h1>
+        <p>учёт наличия — гидроцилиндры спецтехники</p>
+      </div>
+    </div>
+    <div class="stats-strip">
+      <div class="stat"><b id="statTotal">—</b>позиций</div>
+      <div class="stat ok"><b id="statIn">—</b>в наличии</div>
+      <div class="stat gone"><b id="statSold">—</b>продано</div>
+    </div>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="search-row">
+    <div class="search-box">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="searchInput" type="text" placeholder="Поиск по модели или артикулу… например ZAX200 или 707-99">
+    </div>
+    <select id="brandSelect">
+      <option value="">Все бренды</option>
+    </select>
+    <select id="sortSelect">
+      <option value="default">Сортировка: по умолчанию</option>
+      <option value="model">По модели (А–Я)</option>
+      <option value="qty-desc">По количеству ↓</option>
+      <option value="qty-asc">По количеству ↑</option>
+    </select>
+  </div>
+  <div class="filter-row">
+    <div class="chip-group" id="kitChips"></div>
+    <div class="chip-group" id="statusChips">
+      <span class="chip active" data-status="">Все статусы</span>
+      <span class="chip" data-status="in">В наличии</span>
+      <span class="chip" data-status="reserved">В резерве</span>
+      <span class="chip" data-status="sold">Продано</span>
+    </div>
+    <span class="reset-link" id="resetBtn">Сбросить фильтры</span>
+  </div>
+</div>
+
+<div class="table-wrap">
+  <div class="count-line">
+    <span id="countLine">Загрузка…</span>
+    <span>статус сохраняется в этом браузере</span>
+  </div>
+  <div class="grid" id="grid"></div>
+  <div class="empty-state" id="emptyState" style="display:none;">
+    <div class="big">∅</div>
+    Ничего не найдено по этому запросу
+  </div>
+</div>
+
+<footer>
+  данные обновляются вручную в data.json · CINUS / Ремкомплекты · GitHub Pages
+</footer>
+
+<script>
+const STORAGE_KEY = 'remkit_status_v1';
+
+const kitOrder = ['Рукоять','Стрела','Ковш','Золотник'];
+const brandOrder = ['Komatsu','Hitachi','Hyundai','Doosan','Caterpillar'];
+
+let DATA = [];
+let statusMap = {};
+
+function loadStatus(){
+  try{ statusMap = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+  catch(e){ statusMap = {}; }
+}
+function saveStatus(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(statusMap));
+}
+function getStatus(id){
+  return statusMap[id] || 'in';
+}
+function setStatus(id, status){
+  statusMap[id] = status;
+  saveStatus();
+  render();
+}
+
+const state = {
+  query:'',
+  brand:'',
+  kit:'',
+  status:'',
+  sort:'default'
+};
+
+function buildControls(){
+  const brandSelect = document.getElementById('brandSelect');
+  const brands = [...new Set(DATA.map(d=>d.brand))]
+    .sort((a,b)=> brandOrder.indexOf(a) - brandOrder.indexOf(b));
+  brands.forEach(b=>{
+    const opt = document.createElement('option');
+    opt.value = b; opt.textContent = b;
+    brandSelect.appendChild(opt);
+  });
+
+  const kitChips = document.getElementById('kitChips');
+  const kits = [...new Set(DATA.map(d=>d.kit))]
+    .sort((a,b)=> kitOrder.indexOf(a) - kitOrder.indexOf(b));
+  const allChip = document.createElement('span');
+  allChip.className = 'chip active';
+  allChip.textContent = 'Все узлы';
+  allChip.dataset.kit = '';
+  kitChips.appendChild(allChip);
+  kits.forEach(k=>{
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.textContent = k;
+    chip.dataset.kit = k;
+    kitChips.appendChild(chip);
+  });
+
+  kitChips.addEventListener('click', e=>{
+    const chip = e.target.closest('.chip');
+    if(!chip) return;
+    state.kit = chip.dataset.kit;
+    [...kitChips.children].forEach(c=>c.classList.toggle('active', c===chip));
+    render();
+  });
+
+  document.getElementById('statusChips').addEventListener('click', e=>{
+    const chip = e.target.closest('.chip');
+    if(!chip) return;
+    state.status = chip.dataset.status;
+    [...document.getElementById('statusChips').children].forEach(c=>c.classList.toggle('active', c===chip));
+    render();
+  });
+
+  document.getElementById('searchInput').addEventListener('input', e=>{
+    state.query = e.target.value.trim().toLowerCase();
+    render();
+  });
+  brandSelect.addEventListener('change', e=>{
+    state.brand = e.target.value;
+    render();
+  });
+  document.getElementById('sortSelect').addEventListener('change', e=>{
+    state.sort = e.target.value;
+    render();
+  });
+  document.getElementById('resetBtn').addEventListener('click', ()=>{
+    state.query=''; state.brand=''; state.kit=''; state.status=''; state.sort='default';
+    document.getElementById('searchInput').value='';
+    brandSelect.value='';
+    document.getElementById('sortSelect').value='default';
+    [...kitChips.children].forEach(c=>c.classList.toggle('active', c===allChip));
+    [...document.getElementById('statusChips').children].forEach((c,i)=>c.classList.toggle('active', i===0));
+    render();
+  });
+}
+
+function statusLabel(s){
+  if(s==='reserved') return 'В резерве';
+  if(s==='sold') return 'Продано';
+  return 'В наличии';
+}
+function nextStatus(s){
+  if(s==='in') return 'reserved';
+  if(s==='reserved') return 'sold';
+  return 'in';
+}
+
+function cardHtml(item){
+  const st = getStatus(item.id);
+  const pillClass = st==='in' ? 'status-in' : st==='reserved' ? 'status-reserved' : 'status-sold';
+  const cardClass = st==='sold' ? 'card status-sold' : 'card';
+  const crossBlock = item.cross
+    ? `<div><span class="cross-toggle" data-toggle="${item.id}">показать применимость ▾</span><div class="card-cross" id="cross-${item.id}">${item.cross}</div></div>`
+    : '';
+
+  return `
+  <div class="${cardClass}" data-id="${item.id}">
+    <span class="card-badge badge-${item.brand}">${item.brand}</span>
+    <div class="card-main">
+      <div class="card-title-row">
+        <span class="card-model">${item.model}</span>
+        <span class="card-kit">${item.kit}</span>
+      </div>
+      <div class="card-part">арт. <b>${item.part}</b></div>
+      ${crossBlock}
+    </div>
+    <div class="card-right">
+      <div class="qty-box">
+        <div class="qty-num">${item.qty}</div>
+        <div class="qty-label">шт</div>
+      </div>
+      <span class="status-pill ${pillClass}" data-id="${item.id}" title="Нажмите, чтобы изменить статус">${statusLabel(st)}</span>
+      <button class="copy-btn" data-copy="${item.part}" title="Скопировать артикул">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      </button>
+    </div>
+  </div>`;
+}
+
+function applyFilters(){
+  let items = DATA.filter(d=>{
+    if(state.brand && d.brand !== state.brand) return false;
+    if(state.kit && d.kit !== state.kit) return false;
+    if(state.status && getStatus(d.id) !== state.status) return false;
+    if(state.query){
+      const hay = (d.model+' '+d.part+' '+d.brand).toLowerCase();
+      if(!hay.includes(state.query)) return false;
+    }
+    return true;
+  });
+
+  if(state.sort === 'model'){
+    items.sort((a,b)=> a.model.localeCompare(b.model));
+  } else if(state.sort === 'qty-desc'){
+    items.sort((a,b)=> b.qty - a.qty);
+  } else if(state.sort === 'qty-asc'){
+    items.sort((a,b)=> a.qty - b.qty);
+  }
+  return items;
+}
+
+function render(){
+  const items = applyFilters();
+  const grid = document.getElementById('grid');
+  const empty = document.getElementById('emptyState');
+  document.getElementById('countLine').textContent = `Показано ${items.length} из ${DATA.length}`;
+
+  if(items.length === 0){
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+  } else {
+    empty.style.display = 'none';
+    grid.innerHTML = items.map(cardHtml).join('');
+  }
+
+  const totalQty = DATA.filter(d=>getStatus(d.id)!=='sold').length;
+  document.getElementById('statTotal').textContent = DATA.length;
+  document.getElementById('statIn').textContent = DATA.filter(d=>getStatus(d.id)==='in').length;
+  document.getElementById('statSold').textContent = DATA.filter(d=>getStatus(d.id)==='sold').length;
+
+  grid.querySelectorAll('.status-pill').forEach(pill=>{
+    pill.addEventListener('click', ()=>{
+      const id = pill.dataset.id;
+      setStatus(id, nextStatus(getStatus(id)));
+    });
+  });
+  grid.querySelectorAll('.copy-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      navigator.clipboard.writeText(btn.dataset.copy);
+      const original = btn.innerHTML;
+      btn.innerHTML = '✓';
+      setTimeout(()=>{ btn.innerHTML = original; }, 900);
+    });
+  });
+  grid.querySelectorAll('.cross-toggle').forEach(t=>{
+    t.addEventListener('click', ()=>{
+      const id = t.dataset.toggle;
+      const block = document.getElementById('cross-'+id);
+      const showing = block.classList.toggle('show');
+      t.textContent = showing ? 'скрыть применимость ▴' : 'показать применимость ▾';
+    });
+  });
+}
+
+async function init(){
+  loadStatus();
+  try{
+    const res = await fetch('data.json');
+    DATA = await res.json();
+  }catch(e){
+    document.getElementById('countLine').textContent = 'Не удалось загрузить data.json';
+    return;
+  }
+  buildControls();
+  render();
+}
+
+init();
+</script>
+</body>
+</html>
